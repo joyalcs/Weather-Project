@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_DB=weather_project
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=7034
+      - REDIS_HOST=redis  
+      - REDIS_PORT=6379
+    ports:
+      - '8000:8000'
+    volumes:
+      - ./:/weather_backend
+    depends_on:
+      - db
+      - redis
+    command: >
+      sh -c "
+        python manage.py makemigrations &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+
+  db:
+    image: postgres:latest
+    ports:
+      - '5432:5432'
+    volumes:
+      - weather_project:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=weather_project
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=7034
+    container_name: weather_project
+
+  redis:
+    image: redis:7.0.11-alpine
+    ports:
+      - '6379:6379'  
+
+volumes:
+  weather_project:
